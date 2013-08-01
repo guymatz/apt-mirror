@@ -8,7 +8,9 @@ sudo chmod +x /usr/local/bin/apt-mirror;
 
 echo "Installing apt-mirror configuration ...";
 sudo mkdir -p /etc/apt/;
-if [ ! -f /etc/apt/mirror.list ]; then
+if [ -f /etc/apt/mirror.list ]; then
+  sudo cp mirror.list /etc/apt/mirror.list.dpkg-dist
+else
   sudo cp mirror.list /etc/apt/;
 fi
 
