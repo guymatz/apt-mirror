@@ -8,7 +8,9 @@ sudo chmod +x /usr/local/bin/apt-mirror;
 
 echo "Installing apt-mirror configuration ...";
 sudo mkdir -p /etc/apt/;
-sudo cp mirror.list /etc/apt/;
+if [ ! -f /etc/apt/mirror.list ]; then
+  sudo cp mirror.list /etc/apt/;
+fi
 
 echo "Installing apt-mirror manual ...";
 sudo mkdir -p /usr/share/man/man1/
