@@ -8,7 +8,11 @@ sudo chmod +x /usr/local/bin/apt-mirror;
 
 echo "Installing apt-mirror configuration ...";
 sudo mkdir -p /etc/apt/;
-sudo cp mirror.list /etc/apt/;
+if [ -f /etc/apt/mirror.list ]; then
+  sudo cp mirror.list /etc/apt/mirror.list.dpkg-dist
+else
+  sudo cp mirror.list /etc/apt/;
+fi
 
 echo "Installing apt-mirror manual ...";
 sudo mkdir -p /usr/share/man/man1/
@@ -22,5 +26,9 @@ sudo mkdir -p ${BASE_PATH}/skel
 sudo mkdir -p ${BASE_PATH}/var
 
 echo "Installing postmirror script example ...";
-sudo cp postmirror.sh ${BASE_PATH}/var/
+if [ -f ${BASE_PATH}/var/postmirror.sh ]; then
+  sudo cp postmirror.sh ${BASE_PATH}/var/postmirror.sh.dpkg-dist
+else
+  sudo cp postmirror.sh ${BASE_PATH}/var/postmirror.sh
+fi
 
