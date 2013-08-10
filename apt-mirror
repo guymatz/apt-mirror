@@ -434,9 +434,10 @@ foreach (@config_binaries)
 }
 
 foreach (@config_installers) {
-    my ($arch, $uri) = @{$_};
-    
-    add_url_to_download($uri . "/dists/precise/main/installer-${arch}/current/images/MD5SUMS");
+    my ($arch, $uri, $distribution) = @{$_};
+    add_url_to_download($uri . "/dists/${distribution}/main/debian-installer/binary-${arch}/Packages.gz");
+    add_url_to_download($uri . "/dists/${distribution}/main/installer-${arch}/current/images/MD5SUMS");
+    add_url_to_download($uri . "/dists/${distribution}/main/installer-${arch}/current/images/MANIFEST");
 }
 
 chdir get_variable("skel_path") or die("apt-mirror: can't chdir to skel");
@@ -659,13 +660,16 @@ foreach (@config_installers) {
     my ($arch, $uri, $distribution, @components) = @{$_};
     print "I";
     my $install_uri = $uri . "/dists/$distribution/main/installer-$arch/current/images";
+    proceed_index_gz( $uri, "/dists/$distribution/main/debian-installer/binary-$arch/Packages.gz" );
     if(@components) {
-	my $component;
-	foreach $component (@components) {
-	    process_digest($install_uri, "/MD5SUMS", $component);
-	}
-    } else {
-	process_digest($install_uri, "/MD5SUMS");
+        my $component;
+        foreach $component (@components) {
+          process_digest($install_uri, "/MD5SUMS", $component);
+        }
+    } 
+    else
+    {
+        process_digest($install_uri, "/MD5SUMS");
     }
 }
 
@@ -736,6 +740,7 @@ sub process_file
     my $file = shift;
     $file =~ s[~][%7E]g if get_variable("_tilde");
     return 1 if $skipclean{$file};
+    return 1 if $file =~ /installer/;
     push @rm_files, sanitise_uri($file);
     my ( undef, undef, undef, undef, undef, undef, undef, $size, undef, undef, undef, undef, $blocks ) = stat($file);
     $unnecessary_bytes += $blocks * 512;
@@ -747,6 +752,7 @@ sub process_directory
     my $dir       = shift;
     my $is_needed = 0;
     return 1 if $skipclean{$dir};
+    return 1 if $dir =~ /installer/;
     opendir( my $dir_h, $dir ) or die "apt-mirror: can't opendir $dir: $!";
     foreach ( grep { !/^\.$/ && !/^\.\.$/ } readdir($dir_h) )
     {
@@ -795,6 +801,7 @@ else
     print CLEAN "echo 'Removing $total unnecessary files [$unnecessary_bytes bytes]...'\n";
     foreach (@rm_files)
     {
+        next if $_ =~ /\.gpg$/;
         print CLEAN "rm -f '$_'\n";
         print CLEAN "echo -n '[" . int( 100 * $i / $total ) . "\%]'\n" unless $i % 500;
         print CLEAN "echo -n .\n" unless $i % 10;
